@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAgentStore } from './store/agentStore';
 import { getBrand, BRANDS } from './config/brands';
@@ -21,8 +22,12 @@ const NAV_ITEMS: { id: ModuleView; label: string; icon: string; description: str
 
 export function App() {
   const { activeModule, setActiveModule, agents, sidebarOpen, setSidebarOpen, selectedAgentId } = useAgentStore();
+  const [resetKey, setResetKey] = useState(0);
+
   const selectedAgent = agents.find((a) => a.id === selectedAgentId);
   const brand = selectedAgent ? getBrand(selectedAgent.brandId) : null;
+
+  const handleReset = () => setResetKey((k) => k + 1);
 
   return (
     <div className="min-h-screen bg-[#050508] text-white flex font-body">
@@ -151,8 +156,22 @@ export function App() {
             </div>
           </div>
 
-          {/* Brand quick-select */}
+          {/* Controls */}
           <div className="flex items-center gap-2">
+            {/* Reset Button */}
+            <button
+              onClick={handleReset}
+              title="Limpiar formulario"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white/40 hover:text-white/70 hover:bg-white/6 border border-white/8 hover:border-white/15 transition-all"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+              Reset
+            </button>
+
+            {/* Brand quick-select */}
             <select
               className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white/70 focus:outline-none focus:border-[#FFAB00]/50 transition-all"
               value={selectedAgent?.brandId ?? ''}
@@ -189,10 +208,10 @@ export function App() {
           </div>
         </div>
 
-        {/* Module Content */}
+        {/* Module Content — key={`${activeModule}-${resetKey}`} fuerza remount en reset */}
         <AnimatePresence mode="wait">
           <motion.div
-            key={activeModule}
+            key={`${activeModule}-${resetKey}`}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
