@@ -192,7 +192,7 @@ export function Select({ label, options, hint, className = '', ...rest }: Select
       {label && <label className="text-xs font-medium text-white/60 uppercase tracking-wider">{label}</label>}
       <select
         {...rest}
-        className={`w-full bg-[#0a0a10] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FFAB00]/60 transition-all ${className}`}
+        className={`w-full bg-[#0a0a10] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FFAB00]/60 transition-all [&>option]:bg-[#0a0a10] [&>option]:text-white ${className}`}
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>

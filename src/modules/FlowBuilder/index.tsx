@@ -292,7 +292,7 @@ function FlowNodeCard({ node, index, isEntry, allNodes, onEdit, onDelete, onSetE
                       <select
                         value={cond.targetNodeId}
                         onChange={(e) => onUpdateConditionTarget(cond.id, e.target.value)}
-                        className="ml-auto text-xs bg-white/5 border border-white/10 rounded px-1.5 py-0.5 text-white/70 focus:outline-none focus:border-[#FFAB00]/40"
+                        className="ml-auto text-xs bg-[#0d0d14] border border-white/10 rounded px-1.5 py-0.5 text-white/70 focus:outline-none focus:border-[#FFAB00]/40 [&>option]:bg-[#0d0d14] [&>option]:text-white"
                       >
                         <option value="">— Nodo destino —</option>
                         {allNodes.filter((n) => n.id !== node.id).map((n) => (
@@ -565,7 +565,7 @@ function EditNodeModal({ open, node, allNodes, onClose, onSave }: EditNodeModalP
                   <select
                     value={cond.targetNodeId}
                     onChange={(e) => updateCondition(cond.id, { targetNodeId: e.target.value })}
-                    className="flex-1 bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-sm text-white focus:outline-none"
+                    className="flex-1 bg-[#0d0d14] border border-white/10 rounded-lg px-2 py-2 text-sm text-white focus:outline-none [&>option]:bg-[#0d0d14] [&>option]:text-white"
                   >
                     <option value="">→ Nodo destino</option>
                     {allNodes.filter((n) => n.id !== node.id).map((n) => (

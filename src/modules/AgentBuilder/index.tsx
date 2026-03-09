@@ -75,7 +75,7 @@ export function AgentBuilder() {
         <select
           value={filterBrand}
           onChange={(e) => setFilterBrand(e.target.value)}
-          className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FFAB00]/60 transition-all"
+          className="bg-[#0d0d14] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FFAB00]/60 transition-all [&>option]:bg-[#0d0d14] [&>option]:text-white"
         >
           <option value="all">Todas las marcas</option>
           {BRANDS.map((b) => (
@@ -85,7 +85,7 @@ export function AgentBuilder() {
         <select
           value={filterChannel}
           onChange={(e) => setFilterChannel(e.target.value)}
-          className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FFAB00]/60 transition-all"
+          className="bg-[#0d0d14] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FFAB00]/60 transition-all [&>option]:bg-[#0d0d14] [&>option]:text-white"
         >
           <option value="all">Todos los canales</option>
           <option value="whatsapp">WhatsApp</option>

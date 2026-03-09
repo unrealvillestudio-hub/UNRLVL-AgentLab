@@ -159,7 +159,7 @@ export function PromptManager() {
                 <select
                   value={filterCategory}
                   onChange={(e) => setFilterCategory(e.target.value)}
-                  className="w-full mb-3 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none"
+                  className="w-full mb-3 bg-[#0d0d14] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none [&>option]:bg-[#0d0d14] [&>option]:text-white"
                 >
                   <option value="all">Todas las categorías</option>
                   <option value="persona">Persona</option>
@@ -211,7 +211,7 @@ export function PromptManager() {
                 <select
                   value={filterCategory}
                   onChange={(e) => setFilterCategory(e.target.value)}
-                  className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none"
+                  className="bg-[#0d0d14] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none [&>option]:bg-[#0d0d14] [&>option]:text-white"
                 >
                   <option value="all">Todas las categorías</option>
                   <option value="persona">Persona</option>
@@ -224,7 +224,7 @@ export function PromptManager() {
                 <select
                   value={filterBrand}
                   onChange={(e) => setFilterBrand(e.target.value)}
-                  className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none"
+                  className="bg-[#0d0d14] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none [&>option]:bg-[#0d0d14] [&>option]:text-white"
                 >
                   <option value="all">Todas las marcas</option>
                   <option value="global">Global</option>

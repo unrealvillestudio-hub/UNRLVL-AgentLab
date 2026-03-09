@@ -175,7 +175,7 @@ export function App() {
 
             {/* Brand quick-select */}
             <select
-              className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white/70 focus:outline-none focus:border-[#FFAB00]/50 transition-all"
+              className="bg-[#0d0d14] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white/70 focus:outline-none focus:border-[#FFAB00]/50 transition-all [&>option]:bg-[#0d0d14] [&>option]:text-white"
               value={selectedAgent?.brandId ?? ''}
               onChange={(e) => {
                 const a = agents.find((ag) => ag.brandId === e.target.value);
