@@ -10,6 +10,7 @@ import { PromptManager } from './modules/PromptManager';
 import { ConversationMonitor } from './modules/ConversationMonitor';
 import { TestMode } from './modules/TestMode';
 import { BlueprintLibrary } from './modules/BlueprintLibrary';
+import { BlueprintDrawer, BlueprintTriggerButton } from './components/BlueprintDrawer';
 import type { ModuleView } from './core/types';
 
 const NAV_ITEMS: { id: ModuleView; label: string; icon: string; description: string }[] = [
@@ -25,6 +26,7 @@ const NAV_ITEMS: { id: ModuleView; label: string; icon: string; description: str
 export function App() {
   const { activeModule, setActiveModule, agents, sidebarOpen, setSidebarOpen, selectedAgentId } = useAgentStore();
   const [resetKey, setResetKey] = useState(0);
+  const [bpDrawerOpen, setBpDrawerOpen] = useState(false);
 
   const selectedAgent = agents.find((a) => a.id === selectedAgentId);
   const brand = selectedAgent ? getBrand(selectedAgent.brandId) : null;
@@ -160,6 +162,9 @@ export function App() {
 
           {/* Controls */}
           <div className="flex items-center gap-2">
+            {/* Blueprint Drawer Trigger — siempre visible */}
+            <BlueprintTriggerButton onClick={() => setBpDrawerOpen(true)} />
+
             {/* Reset Button */}
             <button
               onClick={handleReset}
@@ -229,6 +234,9 @@ export function App() {
           </motion.div>
         </AnimatePresence>
       </main>
+
+      {/* Blueprint Drawer — global, accesible desde cualquier módulo */}
+      <BlueprintDrawer open={bpDrawerOpen} onClose={() => setBpDrawerOpen(false)} />
     </div>
   );
 }
