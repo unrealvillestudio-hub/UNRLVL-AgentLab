@@ -13,6 +13,8 @@ import { BlueprintLibrary } from './modules/BlueprintLibrary';
 import { BlueprintDrawer, BlueprintTriggerButton } from './components/BlueprintDrawer';
 import type { ModuleView } from './core/types';
 
+const BUILD_TAG = 'AL v1.2';
+
 const NAV_ITEMS: { id: ModuleView; label: string; icon: string; description: string }[] = [
   { id: 'agents', label: 'Agentes', icon: '🤖', description: 'Crear y gestionar agentes' },
   { id: 'flow', label: 'Flow Builder', icon: '🔀', description: 'Flujos conversacionales' },
@@ -55,7 +57,7 @@ export function App() {
                 className="min-w-0"
               >
                 <p className="font-display text-sm font-bold text-white leading-tight">AgentLab</p>
-                <p className="text-xs text-white/30">v1.0 — UNRLVL</p>
+                <p className="text-xs text-white/30">{BUILD_TAG} — UNRLVL</p>
               </motion.div>
             )}
           </AnimatePresence>
