@@ -1,0 +1,66 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --void: #080808;
+  --carbon: #0F0F0F;
+  --graphite: #1A1A1A;
+  --g2: #202020;
+  --chalk: #F2F0EC;
+  --chalk72: rgba(242,240,236,0.72);
+  --chalk42: rgba(242,240,236,0.42);
+  --chalk20: rgba(242,240,236,0.20);
+  --chalk12: rgba(242,240,236,0.12);
+  --chalk06: rgba(242,240,236,0.06);
+  --cyan: #00FFD1;
+  --cyan60: rgba(0,255,209,0.60);
+  --cyan20: rgba(0,255,209,0.20);
+  --cyan08: rgba(0,255,209,0.08);
+  --cyan04: rgba(0,255,209,0.04);
+  --warn: #F5C518;
+  --danger: #FF4444;
+  --fd: 'Bebas Neue', sans-serif;
+  --fm: 'Space Mono', monospace;
+  --fb: 'Libre Baskerville', serif;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--void);
+  color: var(--chalk42);
+  font-family: var(--fm);
+  font-size: 13px;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--carbon);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--g2);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cyan20);
+}
+
+::selection {
+  background: var(--cyan20);
+  color: var(--cyan);
+}
