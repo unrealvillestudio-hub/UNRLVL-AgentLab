@@ -1,4 +1,3 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
 
 // ─── SYSTEM PROMPT ────────────────────────────────────────────────────────────
 const SYSTEM_PROMPT = `Eres el Asistente de Infraestructura Digital de Unreal>ille Studio. Tu función es guiar a los clientes y al equipo en la creación, configuración y gestión correcta de redes sociales, cuentas publicitarias, WhatsApp Business API y la infraestructura digital de sus marcas.
@@ -223,7 +222,7 @@ function validateToken(token: string): { valid: boolean; clientName?: string; re
 }
 
 // ─── HANDLER ──────────────────────────────────────────────────────────────────
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: any, res: any) {
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
