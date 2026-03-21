@@ -66,10 +66,10 @@ function TokenGate({ onAccess }: { onAccess: (token: string, clientName: string)
             onChange={e => { setValue(e.target.value.toUpperCase()); setError('') }}
             onKeyDown={e => e.key === 'Enter' && handleSubmit()}
             placeholder="XXXXXXXX" disabled={loading}
-            style={{ width: '100%', background: 'var(--void)', border: `1px solid ${error ? 'var(--danger)' : 'var(--chalk12)'}`, borderRadius: '3px', padding: '13px 14px', fontFamily: "'Space Mono',monospace", fontSize: '16px', letterSpacing: '0.22em', color: 'var(--cyan)', outline: 'none', marginBottom: error ? '8px' : '16px', caretColor: 'var(--cyan)', transition: 'border-color 0.15s' }}
+            style={{ width: '100%', background: 'var(--void)', border: `1px solid ${error ? 'var(--danger)' : 'var(--chalk12)'}`, borderRadius: '3px', padding: '13px 14px', fontFamily: "'Space Mono',monospace", fontSize: '16px', letterSpacing: '0.22em', color: 'var(--cyan)', outline: 'none', marginBottom: error ? '8px' : '16px', caretColor: 'var(--cyan)' }}
           />
           {error && <div style={{ fontFamily: "'Space Mono',monospace", fontSize: '10px', color: 'var(--danger)', marginBottom: '12px', padding: '8px 10px', background: 'rgba(255,68,68,0.08)', border: '1px solid rgba(255,68,68,0.25)', borderRadius: '3px' }}>✗ {error}</div>}
-          <button onClick={handleSubmit} disabled={loading || !value.trim()} style={{ width: '100%', background: loading || !value.trim() ? 'var(--g2)' : 'var(--cyan)', border: 'none', borderRadius: '3px', padding: '13px', fontFamily: "'Bebas Neue',sans-serif", fontSize: '16px', letterSpacing: '0.14em', color: loading || !value.trim() ? 'var(--chalk42)' : 'var(--void)', cursor: loading || !value.trim() ? 'not-allowed' : 'pointer', transition: 'all 0.15s' }}>
+          <button onClick={handleSubmit} disabled={loading || !value.trim()} style={{ width: '100%', background: loading || !value.trim() ? 'var(--g2)' : 'var(--cyan)', border: 'none', borderRadius: '3px', padding: '13px', fontFamily: "'Bebas Neue',sans-serif", fontSize: '16px', letterSpacing: '0.14em', color: loading || !value.trim() ? 'var(--chalk42)' : 'var(--void)', cursor: loading || !value.trim() ? 'not-allowed' : 'pointer' }}>
             {loading ? 'VERIFICANDO...' : 'INGRESAR'}
           </button>
         </div>
@@ -95,7 +95,7 @@ function MessageBubble({ msg }: { msg: Message }) {
     })}</>
   }
   return (
-    <div style={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start', marginBottom: '16px', gap: '12px', alignItems: 'flex-start' }}>
+    <div style={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start', marginBottom: '20px', gap: '12px', alignItems: 'flex-start' }}>
       {!isUser && (
         <div style={{ flexShrink: 0, width: '28px', height: '28px', borderRadius: '50%', background: 'var(--cyan08)', border: '1px solid var(--cyan20)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '3px' }}>
           <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--cyan)', boxShadow: '0 0 6px var(--cyan)' }} />
@@ -105,8 +105,8 @@ function MessageBubble({ msg }: { msg: Message }) {
         maxWidth: '78%',
         background: isUser ? 'var(--graphite)' : 'transparent',
         border: isUser ? '1px solid var(--chalk12)' : 'none',
-        borderRadius: '12px',
-        padding: isUser ? '12px 16px' : '4px 0',
+        borderRadius: isUser ? '12px' : '0',
+        padding: isUser ? '12px 16px' : '2px 0',
         fontFamily: "'Space Mono',monospace",
         fontSize: '14px',
         color: isUser ? 'var(--chalk72)' : 'var(--chalk)',
@@ -121,11 +121,11 @@ function MessageBubble({ msg }: { msg: Message }) {
 
 function TypingIndicator() {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
       <div style={{ flexShrink: 0, width: '28px', height: '28px', borderRadius: '50%', background: 'var(--cyan08)', border: '1px solid var(--cyan20)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--cyan)', boxShadow: '0 0 6px var(--cyan)' }} />
       </div>
-      <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: '5px' }}>
         {[0,1,2].map(i => <div key={i} style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--cyan60)', animation: `pulse 1.2s ease-in-out ${i*0.2}s infinite` }} />)}
       </div>
     </div>
@@ -139,23 +139,70 @@ const HINTS = [
   '¿Por qué no usar VPN al crear cuentas?',
 ]
 
-// ─── EMPTY STATE ──────────────────────────────────────────────────────────────
-function EmptyState({ clientName }: { clientName: string }) {
-  const greeting = clientName ? `Hola, ${clientName}` : 'Hola'
+// ─── INPUT BOX — shared component ────────────────────────────────────────────
+function InputBox({ value, onChange, onSend, loading, floating }: {
+  value: string
+  onChange: (v: string) => void
+  onSend: (v: string) => void
+  loading: boolean
+  floating: boolean
+}) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    onChange(e.target.value)
+    e.target.style.height = 'auto'
+    e.target.style.height = Math.min(e.target.scrollHeight, 180) + 'px'
+  }
+
+  const handleKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onSend(value) }
+  }
+
+  const hasText = value.trim().length > 0
+
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 0.5s ease-out', paddingBottom: '60px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-        <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--cyan08)', border: '1px solid var(--cyan20)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ width: '11px', height: '11px', borderRadius: '50%', background: 'var(--cyan)', boxShadow: '0 0 10px var(--cyan)' }} />
-        </div>
-        <div style={{ fontFamily: "'Space Mono',monospace", fontSize: '11px', letterSpacing: '0.14em', color: 'var(--cyan)', textTransform: 'uppercase' as const }}>Social Media Agent</div>
-      </div>
-      <div style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: '42px', letterSpacing: '0.04em', color: 'var(--chalk)', lineHeight: 1.1, textAlign: 'center' as const }}>
-        {greeting}
-      </div>
-      <div style={{ fontFamily: "'Libre Baskerville',serif", fontStyle: 'italic', fontSize: '15px', color: 'var(--chalk42)', marginTop: '10px', maxWidth: '420px', lineHeight: '1.7', textAlign: 'center' as const }}>
-        Tu guía para crear correctamente la infraestructura digital de tu negocio.
-      </div>
+    <div style={{
+      background: 'var(--carbon)',
+      border: `1px solid ${hasText ? 'rgba(0,255,209,0.35)' : 'rgba(242,240,236,0.18)'}`,
+      borderRadius: '16px',
+      padding: '14px 16px 14px 20px',
+      display: 'flex', alignItems: 'flex-end', gap: '10px',
+      boxShadow: floating
+        ? (hasText ? '0 0 0 1px rgba(0,255,209,0.12), 0 8px 32px rgba(0,0,0,0.5)' : '0 0 0 1px rgba(0,255,209,0.04), 0 8px 32px rgba(0,0,0,0.5)')
+        : 'none',
+      transition: 'border-color 0.2s, box-shadow 0.2s',
+    }}>
+      <textarea
+        ref={textareaRef}
+        value={value}
+        onChange={handleChange}
+        onKeyDown={handleKey}
+        placeholder="Escribe tu pregunta aquí…"
+        disabled={loading}
+        rows={1}
+        style={{
+          flex: 1, background: 'none', border: 'none', outline: 'none',
+          fontFamily: "'Space Mono',monospace", fontSize: '14px',
+          color: 'var(--chalk72)', lineHeight: '1.7',
+          resize: 'none' as const, overflowY: 'hidden' as const,
+          caretColor: 'var(--cyan)', minHeight: '24px', padding: '2px 0'
+        }}
+      />
+      <button
+        onClick={() => onSend(value)}
+        disabled={loading || !hasText}
+        style={{
+          background: hasText && !loading ? 'var(--cyan)' : 'rgba(242,240,236,0.06)',
+          border: 'none', borderRadius: '10px',
+          width: '38px', height: '38px', flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: hasText && !loading ? 'pointer' : 'not-allowed',
+          transition: 'all 0.2s',
+          color: hasText && !loading ? '#080808' : 'rgba(242,240,236,0.2)',
+          fontSize: '17px', fontWeight: 800,
+        }}
+      >↑</button>
     </div>
   )
 }
@@ -167,7 +214,6 @@ function Chat({ token, clientName, onLogout }: { token: string; clientName: stri
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const isEmpty = messages.length === 0
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, loading])
@@ -180,7 +226,6 @@ function Chat({ token, clientName, onLogout }: { token: string; clientName: stri
     setMessages(newMessages)
     setInput('')
     setLoading(true)
-    if (textareaRef.current) { textareaRef.current.style.height = 'auto' }
     try {
       const res = await fetch('/api/chat', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -202,8 +247,6 @@ function Chat({ token, clientName, onLogout }: { token: string; clientName: stri
         @keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
         @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
         textarea::placeholder{color:rgba(242,240,236,0.28);}
-        textarea:focus{outline:none;}
-        .hint-pill:hover{border-color:rgba(0,255,209,0.3) !important;color:rgba(0,255,209,0.7) !important;}
       `}</style>
 
       {/* HEADER */}
@@ -221,82 +264,67 @@ function Chat({ token, clientName, onLogout }: { token: string; clientName: stri
         </div>
       </div>
 
-      {/* MESSAGES or EMPTY */}
-      <div style={{ flex: 1, overflowY: 'auto' as const, display: 'flex', flexDirection: 'column' as const }}>
-        {isEmpty ? (
-          <EmptyState clientName={clientName} />
-        ) : (
-          <div style={{ maxWidth: '760px', width: '100%', margin: '0 auto', padding: '32px 28px 8px' }}>
-            {messages.map((msg, i) => <div key={i} style={{ animation: 'fadeIn 0.2s ease-out' }}><MessageBubble msg={msg} /></div>)}
-            {loading && <TypingIndicator />}
-            {error && <div style={{ fontFamily: "'Space Mono',monospace", fontSize: '11px', color: 'var(--danger)', padding: '8px 12px', background: 'rgba(255,68,68,0.06)', border: '1px solid rgba(255,68,68,0.2)', borderRadius: '6px', marginBottom: '12px' }}>✗ {error}</div>}
-            <div ref={bottomRef} />
-          </div>
-        )}
-      </div>
-
-      {/* INPUT ZONE — centrado, cápsula */}
-      <div style={{ flexShrink: 0, padding: '16px 28px 20px', display: 'flex', flexDirection: 'column' as const, alignItems: 'center' }}>
-        <div style={{ width: '100%', maxWidth: '680px' }}>
-          {/* TEXTAREA PILL */}
-          <div style={{
-            background: 'var(--carbon)',
-            border: '1px solid rgba(242,240,236,0.16)',
-            borderRadius: '16px',
-            padding: '14px 16px 14px 20px',
-            display: 'flex', alignItems: 'flex-end', gap: '10px',
-            boxShadow: '0 0 0 1px rgba(0,255,209,0.05), 0 4px 24px rgba(0,0,0,0.4)',
-            transition: 'border-color 0.2s, box-shadow 0.2s',
-          }}
-            onFocusCapture={e => { e.currentTarget.style.borderColor = 'rgba(0,255,209,0.3)'; e.currentTarget.style.boxShadow = '0 0 0 1px rgba(0,255,209,0.1), 0 4px 24px rgba(0,0,0,0.4)' }}
-            onBlurCapture={e => { e.currentTarget.style.borderColor = 'rgba(242,240,236,0.16)'; e.currentTarget.style.boxShadow = '0 0 0 1px rgba(0,255,209,0.05), 0 4px 24px rgba(0,0,0,0.4)' }}
-          >
-            <textarea
-              ref={textareaRef}
-              value={input}
-              onChange={e => { setInput(e.target.value); e.target.style.height='auto'; e.target.style.height=Math.min(e.target.scrollHeight,180)+'px' }}
-              onKeyDown={e => { if (e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage(input)} }}
-              placeholder="Escribe tu pregunta aquí…"
-              disabled={loading}
-              rows={1}
-              style={{ flex: 1, background: 'none', border: 'none', outline: 'none', fontFamily: "'Space Mono',monospace", fontSize: '14px', color: 'var(--chalk72)', lineHeight: '1.7', resize: 'none' as const, overflowY: 'hidden' as const, caretColor: 'var(--cyan)', minHeight: '24px', padding: '2px 0' }}
-            />
-            <button
-              onClick={() => sendMessage(input)}
-              disabled={loading || !input.trim()}
-              style={{
-                background: !input.trim() || loading ? 'rgba(242,240,236,0.06)' : 'var(--cyan)',
-                border: 'none', borderRadius: '10px',
-                width: '38px', height: '38px', flexShrink: 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: !input.trim() || loading ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s',
-                color: !input.trim() || loading ? 'rgba(242,240,236,0.2)' : '#080808',
-                fontSize: '17px', fontWeight: 800,
-              }}
-            >↑</button>
+      {/* ── ESTADO VACÍO: greeting + input centrados verticalmente ── */}
+      {isEmpty && (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', padding: '0 28px 40px', animation: 'fadeIn 0.4s ease-out' }}>
+          {/* Greeting */}
+          <div style={{ textAlign: 'center' as const, marginBottom: '40px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '14px' }}>
+              <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--cyan08)', border: '1px solid var(--cyan20)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--cyan)', boxShadow: '0 0 10px var(--cyan)' }} />
+              </div>
+              <div style={{ fontFamily: "'Space Mono',monospace", fontSize: '11px', letterSpacing: '0.14em', color: 'var(--cyan)', textTransform: 'uppercase' as const }}>Social Media Agent</div>
+            </div>
+            <div style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: '46px', letterSpacing: '0.04em', color: 'var(--chalk)', lineHeight: 1.05 }}>
+              {clientName ? `Hola, ${clientName}` : 'Hola'}
+            </div>
+            <div style={{ fontFamily: "'Libre Baskerville',serif", fontStyle: 'italic', fontSize: '15px', color: 'var(--chalk42)', marginTop: '10px', maxWidth: '400px', lineHeight: '1.7' }}>
+              Tu guía para crear correctamente la infraestructura digital de tu negocio.
+            </div>
           </div>
 
-          {/* HINT PILLS — solo estado vacío */}
-          {isEmpty && (
-            <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' as const, justifyContent: 'center' }}>
+          {/* Input centrado — pill permanente */}
+          <div style={{ width: '100%', maxWidth: '660px' }}>
+            <InputBox value={input} onChange={setInput} onSend={sendMessage} loading={loading} floating={true} />
+            {/* hints */}
+            <div style={{ marginTop: '14px', display: 'flex', gap: '8px', flexWrap: 'wrap' as const, justifyContent: 'center' }}>
               {HINTS.map((h, i) => (
-                <button key={i} className="hint-pill" onClick={() => sendMessage(h)} style={{
-                  background: 'none', border: '1px solid rgba(242,240,236,0.10)',
-                  borderRadius: '20px', padding: '5px 14px',
-                  fontFamily: "'Space Mono',monospace", fontSize: '11px',
-                  color: 'rgba(242,240,236,0.28)', cursor: 'pointer',
-                  transition: 'all 0.15s', whiteSpace: 'nowrap' as const
-                }}>{h}</button>
+                <button key={i} onClick={() => sendMessage(h)} style={{
+                  background: 'none', border: '1px solid rgba(242,240,236,0.10)', borderRadius: '20px',
+                  padding: '5px 14px', fontFamily: "'Space Mono',monospace", fontSize: '11px',
+                  color: 'rgba(242,240,236,0.28)', cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap' as const
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor='rgba(0,255,209,0.3)'; e.currentTarget.style.color='rgba(0,255,209,0.7)' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor='rgba(242,240,236,0.10)'; e.currentTarget.style.color='rgba(242,240,236,0.28)' }}
+                >{h}</button>
               ))}
             </div>
-          )}
-
-          <div style={{ textAlign: 'center', marginTop: '10px', fontFamily: "'Space Mono',monospace", fontSize: '9px', color: 'rgba(242,240,236,0.10)', letterSpacing: '0.08em' }}>
-            UNREAL&gt;ILLE · USO INTERNO · INFORMACIÓN OPERATIVA CONFIDENCIAL
           </div>
         </div>
-      </div>
+      )}
+
+      {/* ── CON MENSAJES: scroll + input fijo abajo ── */}
+      {!isEmpty && (
+        <>
+          <div style={{ flex: 1, overflowY: 'auto' as const }}>
+            <div style={{ maxWidth: '760px', width: '100%', margin: '0 auto', padding: '32px 28px 8px' }}>
+              {messages.map((msg, i) => <div key={i} style={{ animation: 'fadeIn 0.2s ease-out' }}><MessageBubble msg={msg} /></div>)}
+              {loading && <TypingIndicator />}
+              {error && <div style={{ fontFamily: "'Space Mono',monospace", fontSize: '11px', color: 'var(--danger)', padding: '8px 12px', background: 'rgba(255,68,68,0.06)', border: '1px solid rgba(255,68,68,0.2)', borderRadius: '6px', marginBottom: '12px' }}>✗ {error}</div>}
+              <div ref={bottomRef} />
+            </div>
+          </div>
+          {/* Input fijo al fondo cuando hay mensajes */}
+          <div style={{ flexShrink: 0, padding: '14px 28px 18px', borderTop: '1px solid var(--chalk06)' }}>
+            <div style={{ maxWidth: '760px', margin: '0 auto' }}>
+              <InputBox value={input} onChange={setInput} onSend={sendMessage} loading={loading} floating={false} />
+              <div style={{ textAlign: 'center', marginTop: '8px', fontFamily: "'Space Mono',monospace", fontSize: '9px', color: 'rgba(242,240,236,0.08)', letterSpacing: '0.08em' }}>
+                UNREAL&gt;ILLE · USO INTERNO · INFORMACIÓN OPERATIVA CONFIDENCIAL
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }
