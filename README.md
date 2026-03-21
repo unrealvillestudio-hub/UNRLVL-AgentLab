@@ -39,7 +39,7 @@ Un push al repo actualiza todos los proyectos simultáneamente.
 
 | Agente | Directorio | Proyecto Vercel | URL permanente | Audiencia |
 |--------|-----------|-----------------|----------------|-----------|
-| Social Media Agent | `apps/assistant/` | `unrlvl-social-agent` | `unrlvl-social-agent.vercel.app` | Equipo + clientes seleccionados |
+| Social Media Agent | `apps/assistant/` | `unrlvl-social-media-agent` | `unrlvl-social-media-agent.vercel.app` | Equipo + clientes seleccionados |
 
 ---
 
