@@ -209,37 +209,121 @@ function validateToken(token) {
   return { valid: false, reason: 'Token no encontrado' }
 }
 
+// ─── KV STORAGE ───────────────────────────────────────────────────────────────
+// Importación dinámica para no romper si KV_REST_API_URL no está configurado
+let kv = null
+try {
+  kv = require('@vercel/kv').kv
+} catch (e) {
+  console.warn('KV no disponible — historial no persistirá entre sesiones')
+}
+
+const KV_MAX_MESSAGES    = 30  // umbral para comprimir
+const KV_KEEP_AFTER_COMPRESS = 5  // mensajes recientes a conservar tras comprimir
+const KV_TTL_SECONDS     = 60 * 60 * 24 * 90  // 90 días de TTL
+
+async function loadHistory(tokenKey) {
+  if (!kv) return []
+  try {
+    const raw = await kv.get(`chat:${tokenKey}`)
+    return raw ? JSON.parse(raw) : []
+  } catch (e) {
+    console.error('KV load error:', e)
+    return []
+  }
+}
+
+async function saveHistory(tokenKey, history, apiKey) {
+  if (!kv) return
+  try {
+    let toSave = history
+    // ── Protocolo de compresión ──────────────────────────────────────────────
+    if (history.length > KV_MAX_MESSAGES) {
+      const older   = history.slice(0, history.length - KV_KEEP_AFTER_COMPRESS)
+      const recent  = history.slice(-KV_KEEP_AFTER_COMPRESS)
+
+      // Generar resumen estructurado via Claude
+      const summaryRes = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 512,
+          system: 'Eres un asistente que genera resúmenes de sesión. Responde SOLO con el resumen estructurado, sin texto adicional.',
+          messages: [{
+            role: 'user',
+            content: `Resume esta conversación en formato estructurado para retomar el trabajo:
+
+${older.map(m => `${m.role === 'user' ? 'Usuario' : 'Asistente'}: ${m.content}`).join('\n')}
+
+Usa exactamente este formato:
+RESUMEN DE SESIÓN — [fecha de hoy]
+Contexto: [qué se estaba construyendo/configurando]
+Completado: ✅ [lista de lo que está listo]
+En curso: ⏳ [lo que quedó a medias]
+Pendiente: ❌ [lo que no se ha iniciado]
+Decisiones tomadas: [decisiones importantes]
+Próximo paso: [acción concreta inmediata]`
+          }]
+        })
+      })
+
+      if (summaryRes.ok) {
+        const summaryData = await summaryRes.json()
+        const summaryText = (summaryData.content || []).find(b => b.type === 'text')?.text || ''
+        const summaryMsg = {
+          role: 'assistant',
+          content: `📋 **Resumen de sesión anterior:**\n\n${summaryText}\n\n---\n*[Historial comprimido — continuando desde aquí]*`,
+          _is_summary: true
+        }
+        toSave = [summaryMsg, ...recent]
+      }
+    }
+    // ────────────────────────────────────────────────────────────────────────
+    await kv.set(`chat:${tokenKey}`, JSON.stringify(toSave), { ex: KV_TTL_SECONDS })
+  } catch (e) {
+    console.error('KV save error:', e)
+  }
+}
+
 // ─── HANDLER ──────────────────────────────────────────────────────────────────
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end()
-  }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end()
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   const { token, messages } = req.body || {}
-
-  if (!token || !messages) {
-    return res.status(400).json({ error: 'token y messages son requeridos' })
-  }
+  if (!token || !messages) return res.status(400).json({ error: 'token y messages son requeridos' })
 
   const validation = validateToken(token)
-  if (!validation.valid) {
-    return res.status(401).json({ error: validation.reason || 'Token inválido' })
-  }
+  if (!validation.valid) return res.status(401).json({ error: validation.reason || 'Token inválido' })
 
   const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) {
-    return res.status(500).json({ error: 'API key no configurada' })
-  }
+  if (!apiKey) return res.status(500).json({ error: 'API key no configurada' })
+
+  // Sólo la verificación de acceso (messages vacío) no persiste
+  const isAccessCheck = messages.length === 1 && messages[0].content === 'verificar acceso'
 
   try {
+    // Construir contexto: historial KV + mensajes nuevos del cliente
+    let contextMessages = messages
+    if (!isAccessCheck) {
+      const kvHistory = await loadHistory(token.toUpperCase())
+      // Evitar duplicar: si el frontend ya envía los mensajes previos, usar solo los nuevos
+      // El frontend envía el historial completo de la sesión activa — usar solo eso + KV como base
+      if (kvHistory.length > 0 && messages.length <= kvHistory.length) {
+        // El frontend tiene menos mensajes que KV → probablemente sesión nueva que no cargó historial
+        contextMessages = [...kvHistory, ...messages]
+      }
+    }
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -251,7 +335,7 @@ module.exports = async function handler(req, res) {
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1024,
         system: SYSTEM_PROMPT,
-        messages: messages.slice(-20)
+        messages: contextMessages.slice(-24)  // últimos 24 para no saturar
       })
     })
 
@@ -263,6 +347,12 @@ module.exports = async function handler(req, res) {
 
     const data = await response.json()
     const text = (data.content || []).find(b => b.type === 'text')?.text || ''
+
+    // Persistir el historial completo (con la respuesta del asistente)
+    if (!isAccessCheck) {
+      const fullHistory = [...contextMessages, { role: 'assistant', content: text }]
+      await saveHistory(token.toUpperCase(), fullHistory, apiKey)
+    }
 
     return res.status(200).json({ reply: text, clientName: validation.clientName })
   } catch (e) {

@@ -14,7 +14,7 @@ function Logotype() {
 }
 
 // ─── TOKEN GATE ───────────────────────────────────────────────────────────────
-function TokenGate({ onAccess }: { onAccess: (token: string, clientName: string) => void }) {
+function TokenGate({ onAccess }: { onAccess: (token: string, clientName: string, history: Message[]) => void }) {
   const [value, setValue] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -23,7 +23,7 @@ function TokenGate({ onAccess }: { onAccess: (token: string, clientName: string)
   useEffect(() => {
     const saved = sessionStorage.getItem('unrlvl_token')
     const savedClient = sessionStorage.getItem('unrlvl_client')
-    if (saved && savedClient) { onAccess(saved, savedClient); return }
+    if (saved && savedClient) { onAccess(saved, savedClient, []); return }
     setTimeout(() => inputRef.current?.focus(), 100)
   }, [onAccess])
 
@@ -31,15 +31,15 @@ function TokenGate({ onAccess }: { onAccess: (token: string, clientName: string)
     if (!value.trim()) return
     setLoading(true); setError('')
     try {
-      const res = await fetch('/api/chat', {
+      const res = await fetch('/api/history', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: value.trim(), messages: [{ role: 'user', content: 'verificar acceso' }] })
+        body: JSON.stringify({ token: value.trim() })
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error || 'Token inválido'); setLoading(false); return }
       sessionStorage.setItem('unrlvl_token', value.trim())
       sessionStorage.setItem('unrlvl_client', data.clientName || '')
-      onAccess(value.trim(), data.clientName || '')
+      onAccess(value.trim(), data.clientName || '', data.history || [])
     } catch { setError('No se pudo verificar el acceso. Intenta de nuevo.') }
     setLoading(false)
   }
@@ -208,8 +208,8 @@ function InputBox({ value, onChange, onSend, loading, floating }: {
 }
 
 // ─── CHAT ─────────────────────────────────────────────────────────────────────
-function Chat({ token, clientName, onLogout }: { token: string; clientName: string; onLogout: () => void }) {
-  const [messages, setMessages] = useState<Message[]>([])
+function Chat({ token, clientName, initialHistory, onLogout }: { token: string; clientName: string; initialHistory: Message[]; onLogout: () => void }) {
+  const [messages, setMessages] = useState<Message[]>(initialHistory)
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -330,8 +330,8 @@ function Chat({ token, clientName, onLogout }: { token: string; clientName: stri
 }
 
 export default function App() {
-  const [session, setSession] = useState<{token:string;clientName:string}|null>(null)
+  const [session, setSession] = useState<{token:string;clientName:string;history:Message[]}|null>(null)
   return session
-    ? <Chat token={session.token} clientName={session.clientName} onLogout={() => { sessionStorage.clear(); setSession(null) }} />
-    : <TokenGate onAccess={(t, c) => setSession({token:t,clientName:c})} />
+    ? <Chat token={session.token} clientName={session.clientName} initialHistory={session.history} onLogout={() => { sessionStorage.clear(); setSession(null) }} />
+    : <TokenGate onAccess={(t, c, h) => setSession({token:t,clientName:c,history:h})} />
 }
