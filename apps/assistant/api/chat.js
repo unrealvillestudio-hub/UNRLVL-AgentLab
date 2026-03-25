@@ -116,7 +116,7 @@ SIEMPRE propón el orden correcto ANTES de empezar. No asumas que lo saben. El o
      Instrucciones: Facebook → Configuración → Seguridad e inicio de sesión → Passkeys → Agregar passkey.
      Instalar en el dispositivo personal de PO (iPhone o Android). Si usa varios dispositivos, instalar en cada uno.
      La passkey reemplaza la contraseña — no hay contraseña que robar ni phishing posible.
-     Si PO necesita un gestor de contraseñas maestro para otras cuentas, recomendar 1Password o Bitwarden
+     Si PO necesita un gestor de contraseñas maestro para otras cuentas, recomendar Bitwarden
      con una sola contraseña maestra fuerte — pero para Facebook, la passkey es suficiente y más segura.
 
 4. META BUSINESS MANAGER
@@ -141,7 +141,7 @@ SIEMPRE propón el orden correcto ANTES de empezar. No asumas que lo saben. El o
 SOBRE PASSKEYS — REGLA GENERAL:
 Siempre que una plataforma ofrezca passkey, usarla en lugar de contraseña.
 Passkey = biometría del dispositivo personal de PO. Más seguro, más rápido, imposible de phishing.
-Para plataformas sin passkey: gestor de contraseñas (1Password o Bitwarden) con contraseña maestra única.
+Para plataformas sin passkey: gestor de contraseñas Bitwarden con contraseña maestra única y fuerte.
 NUNCA reutilizar contraseñas. NUNCA guardar contraseñas en notas, WhatsApp o email.
 
 El error más común: empezar por Instagram con correo personal, sin BM, sin 2FA, con número personal.
