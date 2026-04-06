@@ -23,7 +23,7 @@ module.exports = async function handler(req, res) {
 
     // ── 1. Registry: qué usuarios han tenido actividad ────────────────────────
     const registryRaw = await kv.get(LOG_REGISTRY_KEY)
-    const registry = registryRaw ? JSON.parse(registryRaw) : []
+    const registry = Array.isArray(registryRaw) ? registryRaw : (registryRaw ? JSON.parse(registryRaw) : [])
 
     if (registry.length === 0) {
       md += `> Sin actividad registrada. Los logs automáticos se generan a partir de esta versión del agente.\n\n`
@@ -38,7 +38,7 @@ module.exports = async function handler(req, res) {
         md += `### ${clientName.toUpperCase()} (${role}) — primera sesión: ${firstSeen ? firstSeen.split('T')[0] : '—'}\n\n`
 
         const rawRaw = await kv.get(`raw_log:${tokenKey}`)
-        const rawEntries = rawRaw ? JSON.parse(rawRaw) : []
+        const rawEntries = Array.isArray(rawRaw) ? rawRaw : (rawRaw ? JSON.parse(rawRaw) : [])
 
         if (rawEntries.length === 0) {
           md += `_Sin exchanges registrados para este usuario._\n\n`
