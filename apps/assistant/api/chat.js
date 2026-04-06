@@ -198,7 +198,8 @@ async function loadHistory(tokenKey) {
   if (!kv) return []
   try {
     const raw = await kv.get(`chat:${tokenKey}`)
-    return raw ? JSON.parse(raw) : []
+    if (!raw) return []
+    return Array.isArray(raw) ? raw : JSON.parse(raw)
   } catch (e) { return [] }
 }
 
@@ -224,7 +225,7 @@ async function saveHistory(tokenKey, history, apiKey) {
         toSave = [{ role:'assistant', content:`📋 **Resumen sesión anterior:**\n\n${st}\n\n---\n*[Historial comprimido]*`, _is_summary:true }, ...recent]
       }
     }
-    await kv.set(`chat:${tokenKey}`, JSON.stringify(toSave), { ex: KV_TTL_SECONDS })
+    await kv.set(`chat:${tokenKey}`, toSave, { ex: KV_TTL_SECONDS })
   } catch (e) { console.error('KV save error:', e) }
 }
 
@@ -244,7 +245,7 @@ async function backfillRawLogIfNeeded(tokenKey, clientName, role) {
     const chatRaw = await kv.get(`chat:${tokenKey}`)
     if (!chatRaw) return // no hay historial previo
 
-    const messages = JSON.parse(chatRaw)
+    const messages = Array.isArray(chatRaw) ? chatRaw : JSON.parse(chatRaw)
     const entries = []
     const backfillTs = new Date().toISOString()
 
@@ -269,7 +270,7 @@ async function backfillRawLogIfNeeded(tokenKey, clientName, role) {
     }
 
     if (entries.length > 0) {
-      await kv.set(`raw_log:${tokenKey}`, JSON.stringify(entries), { ex: KV_TTL_SECONDS })
+      await kv.set(`raw_log:${tokenKey}`, entries, { ex: KV_TTL_SECONDS })
       await registerToken(tokenKey, clientName, role)
       console.log(`Backfill completado para ${clientName}: ${entries.length} exchanges`)
     }
@@ -281,7 +282,7 @@ async function appendRawLog(tokenKey, clientName, role, userMsg, assistantMsg) {
   try {
     const key = `raw_log:${tokenKey}`
     const existing = await kv.get(key)
-    const entries = existing ? JSON.parse(existing) : []
+    const entries = Array.isArray(existing) ? existing : (existing ? JSON.parse(existing) : [])
     entries.push({
       ts:            new Date().toISOString(),
       clientName,
@@ -289,7 +290,7 @@ async function appendRawLog(tokenKey, clientName, role, userMsg, assistantMsg) {
       userMsg,
       assistantMsg
     })
-    await kv.set(key, JSON.stringify(entries), { ex: KV_TTL_SECONDS })
+    await kv.set(key, entries, { ex: KV_TTL_SECONDS })
   } catch (e) { console.error('Raw log append error:', e) }
 }
 
@@ -298,11 +299,11 @@ async function registerToken(tokenKey, clientName, role) {
   if (!kv) return
   try {
     const existing = await kv.get(LOG_REGISTRY_KEY)
-    const registry = existing ? JSON.parse(existing) : []
+    const registry = Array.isArray(existing) ? existing : (existing ? JSON.parse(existing) : [])
     const found = registry.find(r => r.tokenKey === tokenKey)
     if (!found) {
       registry.push({ tokenKey, clientName, role, firstSeen: new Date().toISOString() })
-      await kv.set(LOG_REGISTRY_KEY, JSON.stringify(registry), { ex: KV_TTL_SECONDS })
+      await kv.set(LOG_REGISTRY_KEY, registry, { ex: KV_TTL_SECONDS })
     }
   } catch (e) { console.error('Registry error:', e) }
 }
