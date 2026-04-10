@@ -417,7 +417,7 @@ module.exports = async function handler(req, res) {
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1024,
         system: dynamicSystem,
-        messages: contextMessages.slice(-24)
+        messages: contextMessages.slice(-24).map(({ role, content }) => ({ role, content }))
       })
     })
 
